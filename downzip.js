@@ -26,11 +26,33 @@ const getAPIUrl = (url) => {
 
 const getJsonData = async (url) => {
     const response = await fetch(getAPIUrl(url));
-    return await response.json();
+    const json = await response.json();
+    return json;
 };
 
-const downloadFile = (fileName, data) => {
-    zip.file(fileName, data);
+const addFile = async (json, folder = zip.folder("")) => {
+    if (json["content"]) {
+        zip.file(json["name"], json["content"], { base64: true });
+    } else {
+        console.log(json["download_url"]);
+        await fetch(json["download_url"]).then((response) => {
+            response.text().then((data) => {
+                folder.file(json["name"], data);
+                document.write(`<h2>${json["name"]}</h2>`);
+                document.write(`<pre>${data}</pre>`);
+            });
+        });
+    }
+};
+
+// For current folder ""
+const addFolder = async (json) => {
+    const folder = zip.folder("");
+    json.forEach((obj) => {
+        if (obj["type"] === "file") {
+            addFile(obj, folder);
+        }
+    });
 };
 
 const download = () => {
@@ -39,27 +61,33 @@ const download = () => {
     });
 };
 
-const downloadRepoZip = (btn) => {
-    console.log("hello");
+const downloadRepoZip = async (btn) => {
     // btn.disabled = true;
     const url = document.getElementById("inputURL").value;
     console.log(url);
-    getJsonData(url).then((json) => {
-        console.log(json);
-        json.forEach((value) => {
-            if (value["type"] == "file") {
-                files[value["name"]] = value["download_url"];
-            }
-        });
-        console.log(files);
-        for (const key of Object.keys(files)) {
-            fetch(files[key]).then((response) => {
-                response.text().then((data) => {
-                    downloadFile(key, data);
-                    document.write(`<h2>${key}</h2>`);
-                    document.write(`<pre>${data}</pre>`);
-                });
-            });
-        }
-    });
+    const json = await getJsonData(url);
+    console.log(json);
+    if (json.length) {
+        addFolder(json);
+        console.log("folder");
+    } else {
+        addFile(json).then(() => download());
+        console.log("file");
+    }
+
+    // json.forEach((value) => {
+    //     if (value["type"] == "file") {
+    //         files[value["name"]] = value["download_url"];
+    //     }
+    // });
+    // console.log(files);
+    // for (const key of Object.keys(files)) {
+    //     fetch(files[key]).then((response) => {
+    //         response.text().then((data) => {
+    //             downloadFile(key, data);
+    //             document.write(`<h2>${key}</h2>`);
+    //             document.write(`<pre>${data}</pre>`);
+    //         });
+    //     });
+    // }
 };
