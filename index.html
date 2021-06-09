@@ -7,25 +7,43 @@
         <title>Document</title>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.6.0/jszip.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.0/FileSaver.min.js"></script>
-        <script src="test.js"></script>
+        <script src="downzip.js"></script>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x"
+            crossorigin="anonymous"
+        />
+
+        <style>
+            .container {
+                height: 50%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                flex-direction: column;
+            }
+            .input-field {
+                display: block;
+                width: 50%;
+                height: 30px;
+                padding: 0 15px;
+                margin: 20px 0px;
+            }
+        </style>
     </head>
     <body>
-        <tabel>
-            <tr>
-                <td>
-                    <input
-                        width="50px"
-                        type="url"
-                        id="inputURL"
-                        placeholder="https://github.com/urvesh254/chatly-cli"
-                    />
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <button>Download URL</button>
-                </td>
-            </tr>
-        </tabel>
+        <div class="container">
+            <input
+                class="input-field"
+                type="url"
+                id="inputURL"
+                value="https://github.com/urvesh254/Chatly-CLI/blob/main/Client.java"
+                placeholder="https://github.com/urvesh254/chatly-cli"
+            />
+            <button class="btn btn-primary" onclick="downloadRepoZip(this)">
+                Download Repo
+            </button>
+        </div>
     </body>
 </html>

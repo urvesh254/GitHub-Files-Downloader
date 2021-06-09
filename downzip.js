@@ -1,14 +1,3 @@
-const test_urls = [
-    "https://github.com/urvesh254/",
-    "https://github.com/urvesh254/Chatly-CLI",
-    "https://github.com/urvesh254/Chatly-CLI/tree/main/com/ukpatel",
-    "https://github.com/urvesh254/Chatly-CLI/tree/android",
-    "https://github.com/urvesh254/Chatly-CLI/tree/android/app/src/androidTest/java/com/ukpatel/chatly",
-    "https://gub.com/urvesh254/Chatly-CLI/tree/android/app/src/androidTest/java/com/ukpatel/chatly",
-];
-
-let url =
-    "https://api.github.com/repos/urvesh254/chatly-cli/contents?ref=android";
 const API_URL =
     "https://api.github.com/repos/{owner}/{repo}/contents{path}{branch}";
 
@@ -29,40 +18,48 @@ const getUserInfo = (url) => {
     return obj;
 };
 
-const getAPIUrl = (obj) => {
+const getAPIUrl = (url) => {
+    let obj = getUserInfo(url);
     if (!obj) return;
     return `https://api.github.com/repos/${obj.owner}/${obj.repo}/contents${obj.path}${obj.branch}`;
 };
 
 const getJsonData = async (url) => {
-    // const final_api_url = make_api_url(url);
-    const response = await fetch(url);
+    const response = await fetch(getAPIUrl(url));
     return await response.json();
 };
 
 const downloadFile = (fileName, data) => {
     zip.file(fileName, data);
 };
-/* 
-getJsonData(url).then((json) => {
-    json.forEach((value) => {
-        if (value["type"] == "file") {
-            files[value["name"]] = value["download_url"];
-        }
-    });
-    for (const key of Object.keys(files)) {
-        fetch(files[key]).then((response) => {
-            response.text().then((data) => {
-                downloadFile(key, data);
-                document.write(`<h2>${key}</h2>`);
-                document.write(`<pre>${data}</pre>`);
-            });
-        });
-    }
-});
- */
-function download() {
+
+const download = () => {
     zip.generateAsync({ type: "blob" }).then((content) => {
         saveAs(content, "Chatly-CLI.zip");
     });
-}
+};
+
+const downloadRepoZip = (btn) => {
+    console.log("hello");
+    // btn.disabled = true;
+    const url = document.getElementById("inputURL").value;
+    console.log(url);
+    getJsonData(url).then((json) => {
+        console.log(json);
+        json.forEach((value) => {
+            if (value["type"] == "file") {
+                files[value["name"]] = value["download_url"];
+            }
+        });
+        console.log(files);
+        for (const key of Object.keys(files)) {
+            fetch(files[key]).then((response) => {
+                response.text().then((data) => {
+                    downloadFile(key, data);
+                    document.write(`<h2>${key}</h2>`);
+                    document.write(`<pre>${data}</pre>`);
+                });
+            });
+        }
+    });
+};
