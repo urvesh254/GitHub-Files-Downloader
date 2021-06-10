@@ -1,8 +1,8 @@
-const API_URL =
-    "https://api.github.com/repos/{owner}/{repo}/contents{path}{branch}";
+// const API_URL = "https://api.github.com/repos/{owner}/{repo}/contents{path}{branch}";
 
 const zip = new JSZip();
 const files = {};
+let userData = {};
 
 const getUserInfo = (url) => {
     const data = url.split("/");
@@ -19,10 +19,10 @@ const getUserInfo = (url) => {
 };
 
 const getAPIUrl = (url) => {
-    let obj = getUserInfo(url);
-    console.log(obj);
-    if (!obj) return;
-    return `https://api.github.com/repos/${obj.owner}/${obj.repo}/contents${obj.path}${obj.branch}`;
+    userData = getUserInfo(url);
+    console.log(userData);
+    if (!userData) return;
+    return `https://api.github.com/repos/${userData.owner}/${userData.repo}/contents${userData.path}${userData.branch}`;
 };
 
 const getJsonData = async (url) => {
@@ -49,13 +49,15 @@ const addFile = async (json, folder = zip.folder("")) => {
 
 // For current folder ""
 const addFolder = async (json, path) => {
-    console.log(path);
+    console.log(userData["path"], path);
     const folder = zip.folder(path || "");
     json.forEach((obj) => {
         if (obj["type"] === "file") {
             addFile(obj, folder);
         } else {
-            const path = obj["path"];
+            const path = obj["path"]
+                .replace(`${userData["path"].slice(1)}/`, "")
+                .trim();
             fetch(obj["url"])
                 .then((response) => response.json())
                 .then((folder_json) => {
@@ -83,9 +85,7 @@ const downloadRepoZip = async (btn) => {
     console.log(json);
     if (json.length) {
         addFolder(json);
-        console.log("folder");
     } else {
         addFile(json).then(() => download());
-        console.log("file");
     }
 };
