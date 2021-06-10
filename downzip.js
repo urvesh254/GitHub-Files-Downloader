@@ -20,11 +20,13 @@ const getUserInfo = (url) => {
 
 const getAPIUrl = (url) => {
     let obj = getUserInfo(url);
+    console.log(obj);
     if (!obj) return;
     return `https://api.github.com/repos/${obj.owner}/${obj.repo}/contents${obj.path}${obj.branch}`;
 };
 
 const getJsonData = async (url) => {
+    console.log(getAPIUrl(url));
     const response = await fetch(getAPIUrl(url));
     const json = await response.json();
     return json;
@@ -34,31 +36,43 @@ const addFile = async (json, folder = zip.folder("")) => {
     if (json["content"]) {
         zip.file(json["name"], json["content"], { base64: true });
     } else {
-        console.log(json["download_url"]);
-        await fetch(json["download_url"]).then((response) => {
-            response.text().then((data) => {
-                folder.file(json["name"], data);
-                document.write(`<h2>${json["name"]}</h2>`);
-                document.write(`<pre>${data}</pre>`);
+        console.log(json["url"]);
+        await fetch(json["url"]).then((response) => {
+            response.json().then((file_json) => {
+                folder.file(file_json["name"], file_json["content"], {
+                    base64: true,
+                });
             });
         });
     }
 };
 
 // For current folder ""
-const addFolder = async (json) => {
-    const folder = zip.folder("");
+const addFolder = async (json, path) => {
+    console.log(path);
+    const folder = zip.folder(path || "");
     json.forEach((obj) => {
         if (obj["type"] === "file") {
             addFile(obj, folder);
+        } else {
+            const path = obj["path"];
+            fetch(obj["url"])
+                .then((response) => response.json())
+                .then((folder_json) => {
+                    addFolder(folder_json, path);
+                });
         }
     });
 };
 
 const download = () => {
-    zip.generateAsync({ type: "blob" }).then((content) => {
-        saveAs(content, "Chatly-CLI.zip");
-    });
+    zip.generateAsync({ type: "blob" })
+        .then((content) => {
+            saveAs(content, "Chatly-CLI.zip");
+        })
+        .then(() => {
+            zip.files = null;
+        });
 };
 
 const downloadRepoZip = async (btn) => {
@@ -74,20 +88,4 @@ const downloadRepoZip = async (btn) => {
         addFile(json).then(() => download());
         console.log("file");
     }
-
-    // json.forEach((value) => {
-    //     if (value["type"] == "file") {
-    //         files[value["name"]] = value["download_url"];
-    //     }
-    // });
-    // console.log(files);
-    // for (const key of Object.keys(files)) {
-    //     fetch(files[key]).then((response) => {
-    //         response.text().then((data) => {
-    //             downloadFile(key, data);
-    //             document.write(`<h2>${key}</h2>`);
-    //             document.write(`<pre>${data}</pre>`);
-    //         });
-    //     });
-    // }
 };
